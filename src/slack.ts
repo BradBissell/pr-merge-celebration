@@ -4,9 +4,11 @@ import { MergedPR } from "./types";
 
 export class SlackNotifier {
   private webhookUrl: string;
+  private mergeWindowHours: number;
 
-  constructor(webhookUrl: string) {
+  constructor(webhookUrl: string, mergeWindowHours: number = 24) {
     this.webhookUrl = webhookUrl;
+    this.mergeWindowHours = mergeWindowHours;
   }
 
   async sendCelebration(prs: MergedPR[]): Promise<void> {
@@ -67,7 +69,9 @@ export class SlackNotifier {
           type: "mrkdwn",
           text: `*${prs.length}* awesome PR${
             prs.length > 1 ? "s" : ""
-          } merged in the last 24 hours by *${uniqueAuthors.size}* contributor${
+          } merged in the last ${this.mergeWindowHours} hour${
+            this.mergeWindowHours !== 1 ? "s" : ""
+          } by *${uniqueAuthors.size}* contributor${
             uniqueAuthors.size > 1 ? "s" : ""
           }!`,
         },

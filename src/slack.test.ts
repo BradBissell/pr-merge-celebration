@@ -9,10 +9,11 @@ vi.mock('axios');
 describe('SlackNotifier', () => {
   let slackNotifier: SlackNotifier;
   const mockWebhookUrl = 'https://hooks.slack.com/services/test';
+  const defaultMergeWindowHours = 24;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    slackNotifier = new SlackNotifier(mockWebhookUrl);
+    slackNotifier = new SlackNotifier(mockWebhookUrl, defaultMergeWindowHours);
   });
 
   describe('sendCelebration', () => {
@@ -320,6 +321,59 @@ describe('SlackNotifier', () => {
       expect(consoleLogSpy).toHaveBeenCalledWith('Successfully sent celebration for 1 PRs to Slack!');
 
       consoleLogSpy.mockRestore();
+    });
+
+    it('should use configured merge window hours in message', async () => {
+      const customMergeWindow = 12;
+      const customNotifier = new SlackNotifier(mockWebhookUrl, customMergeWindow);
+      const prs: MergedPR[] = [
+        {
+          title: 'Test PR',
+          number: 123,
+          author: 'alice',
+          authorAvatar: 'https://avatar.com/alice',
+          url: 'https://github.com/octocat/hello-world/pull/123',
+          mergedAt: '2024-01-01T12:00:00Z',
+          repository: 'octocat/hello-world',
+        },
+      ];
+
+      (axios.post as any).mockResolvedValue({ status: 200 });
+
+      await customNotifier.sendCelebration(prs);
+
+      const sentMessage = (axios.post as any).mock.calls[0][1];
+      const summaryBlock = sentMessage.blocks.find(
+        (block: any) => block.type === 'section' && block.text?.text?.includes('merged in the last')
+      );
+
+      expect(summaryBlock.text.text).toContain('merged in the last 12 hours');
+    });
+
+    it('should use singular hour when merge window is 1', async () => {
+      const singleHourNotifier = new SlackNotifier(mockWebhookUrl, 1);
+      const prs: MergedPR[] = [
+        {
+          title: 'Test PR',
+          number: 123,
+          author: 'alice',
+          authorAvatar: 'https://avatar.com/alice',
+          url: 'https://github.com/octocat/hello-world/pull/123',
+          mergedAt: '2024-01-01T12:00:00Z',
+          repository: 'octocat/hello-world',
+        },
+      ];
+
+      (axios.post as any).mockResolvedValue({ status: 200 });
+
+      await singleHourNotifier.sendCelebration(prs);
+
+      const sentMessage = (axios.post as any).mock.calls[0][1];
+      const summaryBlock = sentMessage.blocks.find(
+        (block: any) => block.type === 'section' && block.text?.text?.includes('merged in the last')
+      );
+
+      expect(summaryBlock.text.text).toContain('merged in the last 1 hour by');
     });
   });
 

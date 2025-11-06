@@ -30,7 +30,7 @@ async function main() {
 
     // Initialize clients
     const githubClient = new GitHubClient(config.githubToken);
-    const slackNotifier = new SlackNotifier(config.slackWebhookUrl);
+    const slackNotifier = new SlackNotifier(config.slackWebhookUrl, config.mergeWindowHours);
 
     // Fetch merged PRs from the configured time window
     console.log(chalk.blue(`Looking back ${chalk.bold(config.mergeWindowHours.toString())} hours for merged PRs\n`));
