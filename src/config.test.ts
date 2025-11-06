@@ -42,6 +42,78 @@ describe('getConfig', () => {
     expect(config.slackWebhookUrl).toBe('https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXX');
   });
 
+  describe('Slack webhook URL validation edge cases', () => {
+    it('should reject http:// URLs (only https:// allowed)', () => {
+      process.env.GITHUB_TOKEN = 'ghp_token123';
+      process.env.SLACK_WEBHOOK_URL = 'http://hooks.slack.com/services/T/B/X';
+      process.env.REPOS_TO_CHECK = 'owner/repo';
+
+      expect(() => getConfig()).toThrow('SLACK_WEBHOOK_URL must be a valid Slack webhook URL (should start with https://hooks.slack.com/)');
+    });
+
+    it('should reject URL with wrong subdomain', () => {
+      process.env.GITHUB_TOKEN = 'ghp_token123';
+      process.env.SLACK_WEBHOOK_URL = 'https://api.slack.com/webhook';
+      process.env.REPOS_TO_CHECK = 'owner/repo';
+
+      expect(() => getConfig()).toThrow('SLACK_WEBHOOK_URL must be a valid Slack webhook URL (should start with https://hooks.slack.com/)');
+    });
+
+    it('should reject URL without proper prefix', () => {
+      process.env.GITHUB_TOKEN = 'ghp_token123';
+      process.env.SLACK_WEBHOOK_URL = 'https://slack.com/hooks/services/T/B/X';
+      process.env.REPOS_TO_CHECK = 'owner/repo';
+
+      expect(() => getConfig()).toThrow('SLACK_WEBHOOK_URL must be a valid Slack webhook URL (should start with https://hooks.slack.com/)');
+    });
+
+    it('should accept Slack webhook URL with trailing slash', () => {
+      process.env.GITHUB_TOKEN = 'ghp_token123';
+      process.env.SLACK_WEBHOOK_URL = 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXX/';
+      process.env.REPOS_TO_CHECK = 'owner/repo';
+
+      const config = getConfig();
+
+      expect(config.slackWebhookUrl).toBe('https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXX/');
+    });
+
+    it('should accept Slack webhook URL with query parameters', () => {
+      process.env.GITHUB_TOKEN = 'ghp_token123';
+      process.env.SLACK_WEBHOOK_URL = 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXX?foo=bar';
+      process.env.REPOS_TO_CHECK = 'owner/repo';
+
+      const config = getConfig();
+
+      expect(config.slackWebhookUrl).toBe('https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXX?foo=bar');
+    });
+
+    it('should accept short Slack webhook URL format', () => {
+      process.env.GITHUB_TOKEN = 'ghp_token123';
+      process.env.SLACK_WEBHOOK_URL = 'https://hooks.slack.com/test';
+      process.env.REPOS_TO_CHECK = 'owner/repo';
+
+      const config = getConfig();
+
+      expect(config.slackWebhookUrl).toBe('https://hooks.slack.com/test');
+    });
+
+    it('should reject empty string as webhook URL', () => {
+      process.env.GITHUB_TOKEN = 'ghp_token123';
+      process.env.SLACK_WEBHOOK_URL = '';
+      process.env.REPOS_TO_CHECK = 'owner/repo';
+
+      expect(() => getConfig()).toThrow('SLACK_WEBHOOK_URL environment variable is required');
+    });
+
+    it('should reject URL with typo in domain', () => {
+      process.env.GITHUB_TOKEN = 'ghp_token123';
+      process.env.SLACK_WEBHOOK_URL = 'https://hooks.slak.com/services/T/B/X';
+      process.env.REPOS_TO_CHECK = 'owner/repo';
+
+      expect(() => getConfig()).toThrow('SLACK_WEBHOOK_URL must be a valid Slack webhook URL (should start with https://hooks.slack.com/)');
+    });
+  });
+
   it('should throw error when REPOS_TO_CHECK is missing', () => {
     process.env.GITHUB_TOKEN = 'ghp_token123';
     process.env.SLACK_WEBHOOK_URL = 'https://hooks.slack.com/test';

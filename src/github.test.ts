@@ -373,4 +373,228 @@ describe('GitHubClient', () => {
       expect(result[0].number).toBe(123);
     });
   });
+
+  describe('pagination behavior', () => {
+    it('should stop fetching after reaching safety limit of 1000 PRs', async () => {
+      const repos: RepoConfig[] = [{ owner: 'octocat', repo: 'hello-world' }];
+      const now = new Date();
+      const recentMerge = new Date(now.getTime() - 12 * 60 * 60 * 1000);
+
+      // Mock console.log to suppress output and verify safety limit message
+      const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+      // Create a generator that yields many pages
+      mockOctokit.paginate.iterator.mockImplementation(async function* () {
+        // Yield 11 pages of 100 PRs each (1100 total)
+        for (let page = 0; page < 11; page++) {
+          const prs = Array.from({ length: 100 }, (_, i) => ({
+            number: page * 100 + i,
+            title: `PR ${page * 100 + i}`,
+            user: { login: 'alice', avatar_url: 'https://avatar.com/alice' },
+            html_url: `https://github.com/octocat/hello-world/pull/${page * 100 + i}`,
+            merged_at: recentMerge.toISOString(),
+            updated_at: recentMerge.toISOString(),
+          }));
+          yield { data: prs };
+        }
+      });
+
+      const result = await githubClient.getMergedPRsInTimeWindow(repos);
+
+      // Should stop at 1000 PRs, not fetch all 1100
+      expect(result.length).toBeLessThanOrEqual(1000);
+
+      // Verify the safety limit message was logged
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Reached safety limit of 1000 PRs')
+      );
+
+      consoleLogSpy.mockRestore();
+    });
+
+    it('should stop fetching when PRs become older than cutoff time', async () => {
+      const repos: RepoConfig[] = [{ owner: 'octocat', repo: 'hello-world' }];
+      const now = new Date();
+      const recentTime = new Date(now.getTime() - 6 * 60 * 60 * 1000); // 6 hours ago
+      const oldTime = new Date(now.getTime() - 30 * 60 * 60 * 1000); // 30 hours ago
+
+      let pageCount = 0;
+      mockOctokit.paginate.iterator.mockImplementation(async function* () {
+        // First page: recent PRs
+        pageCount++;
+        yield {
+          data: [
+            {
+              number: 1,
+              title: 'Recent PR 1',
+              user: { login: 'alice', avatar_url: 'https://avatar.com/alice' },
+              html_url: 'https://github.com/octocat/hello-world/pull/1',
+              merged_at: recentTime.toISOString(),
+              updated_at: recentTime.toISOString(),
+            },
+          ],
+        };
+
+        // Second page: old PRs (should trigger early termination)
+        pageCount++;
+        yield {
+          data: [
+            {
+              number: 2,
+              title: 'Old PR',
+              user: { login: 'bob', avatar_url: 'https://avatar.com/bob' },
+              html_url: 'https://github.com/octocat/hello-world/pull/2',
+              merged_at: oldTime.toISOString(),
+              updated_at: oldTime.toISOString(),
+            },
+          ],
+        };
+
+        // Third page: should never be fetched due to early termination
+        pageCount++;
+        yield {
+          data: [
+            {
+              number: 3,
+              title: 'Even older PR',
+              user: { login: 'charlie', avatar_url: 'https://avatar.com/charlie' },
+              html_url: 'https://github.com/octocat/hello-world/pull/3',
+              merged_at: oldTime.toISOString(),
+              updated_at: oldTime.toISOString(),
+            },
+          ],
+        };
+      });
+
+      const result = await githubClient.getMergedPRsInTimeWindow(repos, 24);
+
+      // Should only return the recent PR, not the old ones
+      expect(result).toHaveLength(1);
+      expect(result[0].number).toBe(1);
+
+      // Should have stopped after the second page (early termination)
+      // Note: pageCount will be 2 because the generator stopped after page 2
+      expect(pageCount).toBeLessThanOrEqual(2);
+    });
+
+    it('should handle multiple pages of recent PRs', async () => {
+      const repos: RepoConfig[] = [{ owner: 'octocat', repo: 'hello-world' }];
+      const now = new Date();
+      const recentTime = new Date(now.getTime() - 12 * 60 * 60 * 1000);
+
+      mockOctokit.paginate.iterator.mockImplementation(async function* () {
+        // Page 1: 2 recent PRs
+        yield {
+          data: [
+            {
+              number: 1,
+              title: 'PR 1',
+              user: { login: 'alice', avatar_url: 'https://avatar.com/alice' },
+              html_url: 'https://github.com/octocat/hello-world/pull/1',
+              merged_at: recentTime.toISOString(),
+              updated_at: recentTime.toISOString(),
+            },
+            {
+              number: 2,
+              title: 'PR 2',
+              user: { login: 'bob', avatar_url: 'https://avatar.com/bob' },
+              html_url: 'https://github.com/octocat/hello-world/pull/2',
+              merged_at: recentTime.toISOString(),
+              updated_at: recentTime.toISOString(),
+            },
+          ],
+        };
+
+        // Page 2: 2 more recent PRs
+        yield {
+          data: [
+            {
+              number: 3,
+              title: 'PR 3',
+              user: { login: 'charlie', avatar_url: 'https://avatar.com/charlie' },
+              html_url: 'https://github.com/octocat/hello-world/pull/3',
+              merged_at: recentTime.toISOString(),
+              updated_at: recentTime.toISOString(),
+            },
+            {
+              number: 4,
+              title: 'PR 4',
+              user: { login: 'david', avatar_url: 'https://avatar.com/david' },
+              html_url: 'https://github.com/octocat/hello-world/pull/4',
+              merged_at: recentTime.toISOString(),
+              updated_at: recentTime.toISOString(),
+            },
+          ],
+        };
+      });
+
+      const result = await githubClient.getMergedPRsInTimeWindow(repos);
+
+      // Should get all 4 PRs from both pages
+      expect(result).toHaveLength(4);
+      expect(result.map((pr) => pr.number)).toEqual([1, 2, 3, 4]);
+    });
+
+    it('should handle empty pages gracefully', async () => {
+      const repos: RepoConfig[] = [{ owner: 'octocat', repo: 'hello-world' }];
+
+      mockOctokit.paginate.iterator.mockImplementation(async function* () {
+        yield { data: [] };
+      });
+
+      const result = await githubClient.getMergedPRsInTimeWindow(repos);
+
+      expect(result).toEqual([]);
+    });
+
+    it('should continue pagination when page has PRs within cutoff', async () => {
+      const repos: RepoConfig[] = [{ owner: 'octocat', repo: 'hello-world' }];
+      const now = new Date();
+      const time20HoursAgo = new Date(now.getTime() - 20 * 60 * 60 * 1000);
+      const time10HoursAgo = new Date(now.getTime() - 10 * 60 * 60 * 1000);
+
+      mockOctokit.paginate.iterator.mockImplementation(async function* () {
+        // Page 1: oldest PR is still within 24 hour window
+        yield {
+          data: [
+            {
+              number: 1,
+              title: 'Recent PR',
+              user: { login: 'alice', avatar_url: 'https://avatar.com/alice' },
+              html_url: 'https://github.com/octocat/hello-world/pull/1',
+              merged_at: time10HoursAgo.toISOString(),
+              updated_at: time10HoursAgo.toISOString(),
+            },
+            {
+              number: 2,
+              title: 'Older but still within window',
+              user: { login: 'bob', avatar_url: 'https://avatar.com/bob' },
+              html_url: 'https://github.com/octocat/hello-world/pull/2',
+              merged_at: time20HoursAgo.toISOString(),
+              updated_at: time20HoursAgo.toISOString(),
+            },
+          ],
+        };
+
+        // Page 2: should be fetched because previous page's oldest was within window
+        yield {
+          data: [
+            {
+              number: 3,
+              title: 'Another PR',
+              user: { login: 'charlie', avatar_url: 'https://avatar.com/charlie' },
+              html_url: 'https://github.com/octocat/hello-world/pull/3',
+              merged_at: time10HoursAgo.toISOString(),
+              updated_at: time10HoursAgo.toISOString(),
+            },
+          ],
+        };
+      });
+
+      const result = await githubClient.getMergedPRsInTimeWindow(repos, 24);
+
+      // Should get all 3 PRs from both pages
+      expect(result).toHaveLength(3);
+    });
+  });
 });
