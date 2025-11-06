@@ -6,6 +6,16 @@ import { MergedPR } from './types';
 // Mock axios
 vi.mock('axios');
 
+// Mock chalk to return plain strings without ANSI codes
+vi.mock('chalk', () => ({
+  default: {
+    yellow: (str: string) => str,
+    green: (str: string) => str,
+    red: (str: string) => str,
+    bold: (str: string) => str,
+  },
+}));
+
 describe('SlackNotifier', () => {
   let slackNotifier: SlackNotifier;
   const mockWebhookUrl = 'https://hooks.slack.com/services/test';
