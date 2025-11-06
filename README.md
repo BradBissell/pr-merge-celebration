@@ -1,5 +1,8 @@
 # PR Merge Celebration Bot
 
+[![GitHub Marketplace](https://img.shields.io/badge/Marketplace-PR%20Merge%20Celebration-blue.svg?colorA=24292e&colorB=0366d6&style=flat&longCache=true&logo=github)](https://github.com/marketplace/actions/pr-merge-celebration)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 A GitHub Action that celebrates merged pull requests by posting celebratory messages to Slack. Pair it with a github cron workflow (example included) to regularly celebrate your colleagues' work by checking your repositories daily and sending a  summary of all PRs merged in the past given window (defaults to 1 day).
 
 ## Features
@@ -208,6 +211,169 @@ Set the `MERGE_WINDOW` environment variable or use the `merge-window` action inp
 **Slack webhook errors**
 - Verify your `SLACK_WEBHOOK_URL` is correct
 - Check that the Slack app is still installed in your workspace
+
+## Releasing to GitHub Marketplace
+
+This section is for maintainers who want to publish updates to the GitHub Marketplace.
+
+### Prerequisites
+
+- Repository must be public
+- All tests must pass: `pnpm test`
+- Code must be committed and pushed to `main` branch
+
+### Release Process
+
+Follow [semantic versioning](https://semver.org/) (MAJOR.MINOR.PATCH):
+- **PATCH** (e.g., 1.0.1) - Bug fixes and small improvements
+- **MINOR** (e.g., 1.1.0) - New features, backwards compatible
+- **MAJOR** (e.g., 2.0.0) - Breaking changes
+
+#### Step 1: Prepare the Release
+
+1. Make your code changes and commit them
+2. Run tests to ensure everything works:
+   ```bash
+   pnpm test
+   ```
+3. Rebuild the distribution bundle:
+   ```bash
+   pnpm run package
+   ```
+4. Commit the updated `dist/` directory:
+   ```bash
+   git add dist/
+   git commit -m "build: update dist bundle for v1.x.x"
+   git push origin main
+   ```
+
+#### Step 2: Create Git Tags
+
+Create both a specific version tag and update the major version tag:
+
+```bash
+# For a new patch version (e.g., v1.0.1)
+git tag -a v1.0.1 -m "Bug fixes and improvements"
+git tag -fa v1 -m "Latest v1.x.x release"
+
+# For a new minor version (e.g., v1.1.0)
+git tag -a v1.1.0 -m "Add new features"
+git tag -fa v1 -m "Latest v1.x.x release"
+
+# For a new major version (e.g., v2.0.0)
+git tag -a v2.0.0 -m "Breaking changes"
+git tag -a v2 -m "Latest v2.x.x release"
+
+# Push tags to GitHub (force push for floating major version tag)
+git push origin v1.0.1  # or your specific version
+git push origin v1 --force
+```
+
+**Why two tags?**
+- `v1.0.1` - Specific version users can pin to for stability
+- `v1` - "Floating" tag that users reference to get automatic updates
+
+#### Step 3: Create GitHub Release
+
+1. Go to your repository on GitHub
+2. Click **Releases** → **Draft a new release**
+3. Fill in the release form:
+   - **Choose a tag**: Select the version tag (e.g., `v1.0.1`)
+   - **Release title**: Same as tag (e.g., `v1.0.1`)
+   - **Description**: Add detailed release notes
+
+   Example release notes template:
+   ```markdown
+   ## 🎉 What's Changed
+
+   ### ✨ New Features
+   - Added feature X
+   - Improved Y
+
+   ### 🐛 Bug Fixes
+   - Fixed issue with Z
+
+   ### 🔧 Maintenance
+   - Updated dependencies
+   - Improved test coverage
+
+   ## 📦 Usage
+
+   ```yaml
+   - uses: <username>/pr-merge-celebration@v1
+     with:
+       github-token: ${{ secrets.GITHUB_TOKEN }}
+       slack-webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
+       repos-to-check: 'owner/repo1,owner/repo2'
+   ```
+
+   **Full Changelog**: https://github.com/<username>/pr-merge-celebration/compare/v1.0.0...v1.0.1
+   ```
+
+4. **Important**: Check ☑️ **"Publish this Action to the GitHub Marketplace"**
+5. Select **Primary Category** (e.g., "Utilities" or "Deployment")
+6. Click **Publish release**
+
+#### Step 4: Verify Publication
+
+1. Visit https://github.com/marketplace
+2. Search for "PR Merge Celebration"
+3. Verify your action appears with the new version
+
+### Quick Release Commands
+
+For convenience, here's a complete release workflow:
+
+```bash
+# 1. Make changes, test, and commit
+pnpm test
+pnpm run package
+git add .
+git commit -m "feat: add new feature"
+git push origin main
+
+# 2. Tag and push (replace with your version)
+VERSION="v1.0.1"
+git tag -a $VERSION -m "Release $VERSION"
+git tag -fa v1 -m "Latest v1.x.x release"
+git push origin $VERSION
+git push origin v1 --force
+
+# 3. Create GitHub Release via web UI
+# Then verify on GitHub Marketplace
+```
+
+### Version Management
+
+Users can reference your action in three ways:
+
+```yaml
+# Recommended: Major version (gets automatic updates)
+- uses: <username>/pr-merge-celebration@v1
+
+# Pinned to specific version (no automatic updates)
+- uses: <username>/pr-merge-celebration@v1.0.1
+
+# Most secure: Pinned to commit SHA
+- uses: <username>/pr-merge-celebration@abc123
+```
+
+### Breaking Changes
+
+When releasing a major version with breaking changes:
+
+1. Document all breaking changes in the release notes
+2. Provide migration guide for users
+3. Update README with new usage examples
+4. Consider maintaining the previous major version for a deprecation period
+
+Example:
+```bash
+git tag -a v2.0.0 -m "BREAKING: New major version"
+git tag -a v2 -m "Latest v2.x.x release"
+git push origin v2.0.0
+git push origin v2
+```
 
 ## License
 
