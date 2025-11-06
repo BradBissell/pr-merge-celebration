@@ -1,6 +1,6 @@
 import chalk from "chalk";
 import axios from "axios";
-import { MergedPR } from "./types";
+import { MergedPR, SlackMessage, SlackBlock } from "./types";
 
 export class SlackNotifier {
   private webhookUrl: string;
@@ -34,7 +34,7 @@ export class SlackNotifier {
     }
   }
 
-  private buildCelebrationMessage(prs: MergedPR[]): any {
+  private buildCelebrationMessage(prs: MergedPR[]): SlackMessage {
     const uniqueAuthors = new Set(prs.map((pr) => pr.author));
     const repoGroups = this.groupPRsByRepo(prs);
 
@@ -54,7 +54,7 @@ export class SlackNotifier {
     const headerText = headers[Math.floor(Math.random() * headers.length)];
 
     // Build the message blocks
-    const blocks: any[] = [
+    const blocks: SlackBlock[] = [
       {
         type: "header",
         text: {
