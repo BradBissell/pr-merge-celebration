@@ -17,8 +17,9 @@ export class GitHubClient {
       try {
         console.log(chalk.blue(`Checking ${chalk.bold(`${owner}/${repo}`)} for merged PRs...`));
 
-        // Fetch recently closed PRs
-        const { data: pullRequests } = await this.octokit.pulls.list({
+        // Fetch all recently closed PRs with pagination
+        const pullRequests = [];
+        const iterator = this.octokit.paginate.iterator(this.octokit.pulls.list, {
           owner,
           repo,
           state: 'closed',
@@ -26,6 +27,27 @@ export class GitHubClient {
           direction: 'desc',
           per_page: 100,
         });
+
+        // Iterate through pages until we find PRs older than our cutoff
+        for await (const response of iterator) {
+          const prsInPage = response.data;
+
+          // Add PRs from this page
+          pullRequests.push(...prsInPage);
+
+          // If we've found a PR that was updated before our cutoff, we can stop
+          // (since PRs are sorted by update time descending)
+          const oldestUpdatedInPage = prsInPage[prsInPage.length - 1]?.updated_at;
+          if (oldestUpdatedInPage && new Date(oldestUpdatedInPage) < cutoffTime) {
+            break;
+          }
+
+          // Safety limit: stop after 10 pages (1000 PRs)
+          if (pullRequests.length >= 1000) {
+            console.log(chalk.yellow(`Reached safety limit of 1000 PRs for ${owner}/${repo}`));
+            break;
+          }
+        }
 
         // Filter for merged PRs in the time window
         const mergedPRs = pullRequests.filter((pr) => {

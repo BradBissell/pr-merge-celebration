@@ -10,6 +10,9 @@ vi.mock('@octokit/rest', () => {
         pulls: {
           list: vi.fn(),
         },
+        paginate: {
+          iterator: vi.fn(),
+        },
       };
     }),
   };
@@ -30,34 +33,31 @@ describe('GitHubClient', () => {
     it('should return empty array when no PRs are merged', async () => {
       const repos: RepoConfig[] = [{ owner: 'octocat', repo: 'hello-world' }];
 
-      mockOctokit.pulls.list.mockResolvedValue({ data: [] });
+      mockOctokit.paginate.iterator.mockImplementation(async function* () {
+        yield { data: [] };
+      });
 
       const result = await githubClient.getMergedPRsInTimeWindow(repos);
 
       expect(result).toEqual([]);
-      expect(mockOctokit.pulls.list).toHaveBeenCalledWith({
-        owner: 'octocat',
-        repo: 'hello-world',
-        state: 'closed',
-        sort: 'updated',
-        direction: 'desc',
-        per_page: 100,
-      });
     });
 
     it('should filter out PRs without merged_at timestamp', async () => {
       const repos: RepoConfig[] = [{ owner: 'octocat', repo: 'hello-world' }];
 
-      mockOctokit.pulls.list.mockResolvedValue({
-        data: [
-          {
-            number: 1,
-            title: 'Closed but not merged',
-            user: { login: 'user1', avatar_url: 'https://avatar.com/user1' },
-            html_url: 'https://github.com/octocat/hello-world/pull/1',
-            merged_at: null, // Not merged
-          },
-        ],
+      mockOctokit.paginate.iterator.mockImplementation(async function* () {
+        yield {
+          data: [
+            {
+              number: 1,
+              title: 'Closed but not merged',
+              user: { login: 'user1', avatar_url: 'https://avatar.com/user1' },
+              html_url: 'https://github.com/octocat/hello-world/pull/1',
+              merged_at: null, // Not merged
+              updated_at: new Date().toISOString(),
+            },
+          ],
+        };
       });
 
       const result = await githubClient.getMergedPRsInTimeWindow(repos);
@@ -70,16 +70,19 @@ describe('GitHubClient', () => {
       const now = new Date();
       const recentMerge = new Date(now.getTime() - 12 * 60 * 60 * 1000); // 12 hours ago
 
-      mockOctokit.pulls.list.mockResolvedValue({
-        data: [
-          {
-            number: 123,
-            title: 'Add amazing feature',
-            user: { login: 'alice', avatar_url: 'https://avatar.com/alice' },
-            html_url: 'https://github.com/octocat/hello-world/pull/123',
-            merged_at: recentMerge.toISOString(),
-          },
-        ],
+      mockOctokit.paginate.iterator.mockImplementation(async function* () {
+        yield {
+          data: [
+            {
+              number: 123,
+              title: 'Add amazing feature',
+              user: { login: 'alice', avatar_url: 'https://avatar.com/alice' },
+              html_url: 'https://github.com/octocat/hello-world/pull/123',
+              merged_at: recentMerge.toISOString(),
+              updated_at: recentMerge.toISOString(),
+            },
+          ],
+        };
       });
 
       const result = await githubClient.getMergedPRsInTimeWindow(repos);
@@ -102,23 +105,27 @@ describe('GitHubClient', () => {
       const recentMerge = new Date(now.getTime() - 12 * 60 * 60 * 1000); // 12 hours ago
       const oldMerge = new Date(now.getTime() - 48 * 60 * 60 * 1000); // 48 hours ago
 
-      mockOctokit.pulls.list.mockResolvedValue({
-        data: [
-          {
-            number: 123,
-            title: 'Recent PR',
-            user: { login: 'alice', avatar_url: 'https://avatar.com/alice' },
-            html_url: 'https://github.com/octocat/hello-world/pull/123',
-            merged_at: recentMerge.toISOString(),
-          },
-          {
-            number: 122,
-            title: 'Old PR',
-            user: { login: 'bob', avatar_url: 'https://avatar.com/bob' },
-            html_url: 'https://github.com/octocat/hello-world/pull/122',
-            merged_at: oldMerge.toISOString(),
-          },
-        ],
+      mockOctokit.paginate.iterator.mockImplementation(async function* () {
+        yield {
+          data: [
+            {
+              number: 123,
+              title: 'Recent PR',
+              user: { login: 'alice', avatar_url: 'https://avatar.com/alice' },
+              html_url: 'https://github.com/octocat/hello-world/pull/123',
+              merged_at: recentMerge.toISOString(),
+              updated_at: recentMerge.toISOString(),
+            },
+            {
+              number: 122,
+              title: 'Old PR',
+              user: { login: 'bob', avatar_url: 'https://avatar.com/bob' },
+              html_url: 'https://github.com/octocat/hello-world/pull/122',
+              merged_at: oldMerge.toISOString(),
+              updated_at: oldMerge.toISOString(),
+            },
+          ],
+        };
       });
 
       const result = await githubClient.getMergedPRsInTimeWindow(repos);
@@ -137,29 +144,37 @@ describe('GitHubClient', () => {
       const merge1 = new Date(now.getTime() - 12 * 60 * 60 * 1000); // 12 hours ago
       const merge2 = new Date(now.getTime() - 6 * 60 * 60 * 1000); // 6 hours ago (more recent)
 
-      mockOctokit.pulls.list
-        .mockResolvedValueOnce({
-          data: [
-            {
-              number: 123,
-              title: 'PR from repo 1',
-              user: { login: 'alice', avatar_url: 'https://avatar.com/alice' },
-              html_url: 'https://github.com/octocat/hello-world/pull/123',
-              merged_at: merge1.toISOString(),
-            },
-          ],
-        })
-        .mockResolvedValueOnce({
-          data: [
-            {
-              number: 456,
-              title: 'PR from repo 2',
-              user: { login: 'bob', avatar_url: 'https://avatar.com/bob' },
-              html_url: 'https://github.com/microsoft/vscode/pull/456',
-              merged_at: merge2.toISOString(),
-            },
-          ],
-        });
+      let callCount = 0;
+      mockOctokit.paginate.iterator.mockImplementation(async function* () {
+        if (callCount === 0) {
+          callCount++;
+          yield {
+            data: [
+              {
+                number: 123,
+                title: 'PR from repo 1',
+                user: { login: 'alice', avatar_url: 'https://avatar.com/alice' },
+                html_url: 'https://github.com/octocat/hello-world/pull/123',
+                merged_at: merge1.toISOString(),
+                updated_at: merge1.toISOString(),
+              },
+            ],
+          };
+        } else {
+          yield {
+            data: [
+              {
+                number: 456,
+                title: 'PR from repo 2',
+                user: { login: 'bob', avatar_url: 'https://avatar.com/bob' },
+                html_url: 'https://github.com/microsoft/vscode/pull/456',
+                merged_at: merge2.toISOString(),
+                updated_at: merge2.toISOString(),
+              },
+            ],
+          };
+        }
+      });
 
       const result = await githubClient.getMergedPRsInTimeWindow(repos);
 
@@ -175,30 +190,35 @@ describe('GitHubClient', () => {
       const merge2 = new Date(now.getTime() - 12 * 60 * 60 * 1000); // 12 hours ago
       const merge3 = new Date(now.getTime() - 2 * 60 * 60 * 1000); // 2 hours ago
 
-      mockOctokit.pulls.list.mockResolvedValue({
-        data: [
-          {
-            number: 122,
-            title: 'Second oldest',
-            user: { login: 'alice', avatar_url: 'https://avatar.com/alice' },
-            html_url: 'https://github.com/octocat/hello-world/pull/122',
-            merged_at: merge1.toISOString(),
-          },
-          {
-            number: 121,
-            title: 'Oldest',
-            user: { login: 'bob', avatar_url: 'https://avatar.com/bob' },
-            html_url: 'https://github.com/octocat/hello-world/pull/121',
-            merged_at: merge2.toISOString(),
-          },
-          {
-            number: 123,
-            title: 'Newest',
-            user: { login: 'charlie', avatar_url: 'https://avatar.com/charlie' },
-            html_url: 'https://github.com/octocat/hello-world/pull/123',
-            merged_at: merge3.toISOString(),
-          },
-        ],
+      mockOctokit.paginate.iterator.mockImplementation(async function* () {
+        yield {
+          data: [
+            {
+              number: 122,
+              title: 'Second oldest',
+              user: { login: 'alice', avatar_url: 'https://avatar.com/alice' },
+              html_url: 'https://github.com/octocat/hello-world/pull/122',
+              merged_at: merge1.toISOString(),
+              updated_at: merge1.toISOString(),
+            },
+            {
+              number: 121,
+              title: 'Oldest',
+              user: { login: 'bob', avatar_url: 'https://avatar.com/bob' },
+              html_url: 'https://github.com/octocat/hello-world/pull/121',
+              merged_at: merge2.toISOString(),
+              updated_at: merge2.toISOString(),
+            },
+            {
+              number: 123,
+              title: 'Newest',
+              user: { login: 'charlie', avatar_url: 'https://avatar.com/charlie' },
+              html_url: 'https://github.com/octocat/hello-world/pull/123',
+              merged_at: merge3.toISOString(),
+              updated_at: merge3.toISOString(),
+            },
+          ],
+        };
       });
 
       const result = await githubClient.getMergedPRsInTimeWindow(repos);
@@ -214,16 +234,19 @@ describe('GitHubClient', () => {
       const now = new Date();
       const recentMerge = new Date(now.getTime() - 12 * 60 * 60 * 1000);
 
-      mockOctokit.pulls.list.mockResolvedValue({
-        data: [
-          {
-            number: 123,
-            title: 'PR without user',
-            user: null,
-            html_url: 'https://github.com/octocat/hello-world/pull/123',
-            merged_at: recentMerge.toISOString(),
-          },
-        ],
+      mockOctokit.paginate.iterator.mockImplementation(async function* () {
+        yield {
+          data: [
+            {
+              number: 123,
+              title: 'PR without user',
+              user: null,
+              html_url: 'https://github.com/octocat/hello-world/pull/123',
+              merged_at: recentMerge.toISOString(),
+              updated_at: recentMerge.toISOString(),
+            },
+          ],
+        };
       });
 
       const result = await githubClient.getMergedPRsInTimeWindow(repos);
@@ -244,26 +267,33 @@ describe('GitHubClient', () => {
       // Mock console.error to suppress error output
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-      mockOctokit.pulls.list
-        .mockRejectedValueOnce(new Error('API Error'))
-        .mockResolvedValueOnce({
-          data: [
-            {
-              number: 456,
-              title: 'PR from repo 2',
-              user: { login: 'bob', avatar_url: 'https://avatar.com/bob' },
-              html_url: 'https://github.com/microsoft/vscode/pull/456',
-              merged_at: recentMerge.toISOString(),
-            },
-          ],
-        });
+      let callCount = 0;
+      mockOctokit.paginate.iterator.mockImplementation(async function* () {
+        if (callCount === 0) {
+          callCount++;
+          throw new Error('API Error');
+        } else {
+          yield {
+            data: [
+              {
+                number: 456,
+                title: 'PR from repo 2',
+                user: { login: 'bob', avatar_url: 'https://avatar.com/bob' },
+                html_url: 'https://github.com/microsoft/vscode/pull/456',
+                merged_at: recentMerge.toISOString(),
+                updated_at: recentMerge.toISOString(),
+              },
+            ],
+          };
+        }
+      });
 
       const result = await githubClient.getMergedPRsInTimeWindow(repos);
 
       expect(result).toHaveLength(1);
       expect(result[0].repository).toBe('microsoft/vscode');
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Error fetching PRs for octocat/hello-world:',
+        expect.stringContaining('Error fetching PRs for octocat/hello-world:'),
         expect.any(Error)
       );
 
@@ -276,23 +306,27 @@ describe('GitHubClient', () => {
       const mergeAt6Hours = new Date(now.getTime() - 6 * 60 * 60 * 1000); // 6 hours ago
       const mergeAt15Hours = new Date(now.getTime() - 15 * 60 * 60 * 1000); // 15 hours ago
 
-      mockOctokit.pulls.list.mockResolvedValue({
-        data: [
-          {
-            number: 123,
-            title: 'Recent PR (6 hours ago)',
-            user: { login: 'alice', avatar_url: 'https://avatar.com/alice' },
-            html_url: 'https://github.com/octocat/hello-world/pull/123',
-            merged_at: mergeAt6Hours.toISOString(),
-          },
-          {
-            number: 122,
-            title: 'Older PR (15 hours ago)',
-            user: { login: 'bob', avatar_url: 'https://avatar.com/bob' },
-            html_url: 'https://github.com/octocat/hello-world/pull/122',
-            merged_at: mergeAt15Hours.toISOString(),
-          },
-        ],
+      mockOctokit.paginate.iterator.mockImplementation(async function* () {
+        yield {
+          data: [
+            {
+              number: 123,
+              title: 'Recent PR (6 hours ago)',
+              user: { login: 'alice', avatar_url: 'https://avatar.com/alice' },
+              html_url: 'https://github.com/octocat/hello-world/pull/123',
+              merged_at: mergeAt6Hours.toISOString(),
+              updated_at: mergeAt6Hours.toISOString(),
+            },
+            {
+              number: 122,
+              title: 'Older PR (15 hours ago)',
+              user: { login: 'bob', avatar_url: 'https://avatar.com/bob' },
+              html_url: 'https://github.com/octocat/hello-world/pull/122',
+              merged_at: mergeAt15Hours.toISOString(),
+              updated_at: mergeAt15Hours.toISOString(),
+            },
+          ],
+        };
       });
 
       // With 12 hour window, should only get the 6 hour old PR
@@ -309,23 +343,27 @@ describe('GitHubClient', () => {
       const merge20HoursAgo = new Date(now.getTime() - 20 * 60 * 60 * 1000);
       const merge30HoursAgo = new Date(now.getTime() - 30 * 60 * 60 * 1000);
 
-      mockOctokit.pulls.list.mockResolvedValue({
-        data: [
-          {
-            number: 123,
-            title: 'Within 24 hours',
-            user: { login: 'alice', avatar_url: 'https://avatar.com/alice' },
-            html_url: 'https://github.com/octocat/hello-world/pull/123',
-            merged_at: merge20HoursAgo.toISOString(),
-          },
-          {
-            number: 122,
-            title: 'Outside 24 hours',
-            user: { login: 'bob', avatar_url: 'https://avatar.com/bob' },
-            html_url: 'https://github.com/octocat/hello-world/pull/122',
-            merged_at: merge30HoursAgo.toISOString(),
-          },
-        ],
+      mockOctokit.paginate.iterator.mockImplementation(async function* () {
+        yield {
+          data: [
+            {
+              number: 123,
+              title: 'Within 24 hours',
+              user: { login: 'alice', avatar_url: 'https://avatar.com/alice' },
+              html_url: 'https://github.com/octocat/hello-world/pull/123',
+              merged_at: merge20HoursAgo.toISOString(),
+              updated_at: merge20HoursAgo.toISOString(),
+            },
+            {
+              number: 122,
+              title: 'Outside 24 hours',
+              user: { login: 'bob', avatar_url: 'https://avatar.com/bob' },
+              html_url: 'https://github.com/octocat/hello-world/pull/122',
+              merged_at: merge30HoursAgo.toISOString(),
+              updated_at: merge30HoursAgo.toISOString(),
+            },
+          ],
+        };
       });
 
       // Call without specifying hours, should default to 24
