@@ -137,7 +137,7 @@ describe('getConfig', () => {
     process.env.REPOS_TO_CHECK = 'octocat/hello-world';
     process.env.MERGE_WINDOW = 'invalid';
 
-    expect(() => getConfig()).toThrow('MERGE_WINDOW must be a positive number');
+    expect(() => getConfig()).toThrow('MERGE_WINDOW must be a positive number between 1 and 720 hours (30 days)');
   });
 
   it('should throw error for negative merge window', () => {
@@ -146,7 +146,7 @@ describe('getConfig', () => {
     process.env.REPOS_TO_CHECK = 'octocat/hello-world';
     process.env.MERGE_WINDOW = '-5';
 
-    expect(() => getConfig()).toThrow('MERGE_WINDOW must be a positive number');
+    expect(() => getConfig()).toThrow('MERGE_WINDOW must be a positive number between 1 and 720 hours (30 days)');
   });
 
   it('should throw error for zero merge window', () => {
@@ -155,6 +155,26 @@ describe('getConfig', () => {
     process.env.REPOS_TO_CHECK = 'octocat/hello-world';
     process.env.MERGE_WINDOW = '0';
 
-    expect(() => getConfig()).toThrow('MERGE_WINDOW must be a positive number');
+    expect(() => getConfig()).toThrow('MERGE_WINDOW must be a positive number between 1 and 720 hours (30 days)');
+  });
+
+  it('should throw error for merge window exceeding 720 hours', () => {
+    process.env.GITHUB_TOKEN = 'ghp_token123';
+    process.env.SLACK_WEBHOOK_URL = 'https://hooks.slack.com/test';
+    process.env.REPOS_TO_CHECK = 'octocat/hello-world';
+    process.env.MERGE_WINDOW = '721';
+
+    expect(() => getConfig()).toThrow('MERGE_WINDOW must be a positive number between 1 and 720 hours (30 days)');
+  });
+
+  it('should accept merge window at maximum bound (720 hours)', () => {
+    process.env.GITHUB_TOKEN = 'ghp_token123';
+    process.env.SLACK_WEBHOOK_URL = 'https://hooks.slack.com/test';
+    process.env.REPOS_TO_CHECK = 'octocat/hello-world';
+    process.env.MERGE_WINDOW = '720';
+
+    const config = getConfig();
+
+    expect(config.mergeWindowHours).toBe(720);
   });
 });

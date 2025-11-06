@@ -19,8 +19,8 @@ export function getConfig() {
   }
 
   const mergeWindowHours = parseInt(mergeWindow, 10);
-  if (isNaN(mergeWindowHours) || mergeWindowHours <= 0) {
-    throw new Error('MERGE_WINDOW must be a positive number');
+  if (isNaN(mergeWindowHours) || mergeWindowHours <= 0 || mergeWindowHours > 720) {
+    throw new Error('MERGE_WINDOW must be a positive number between 1 and 720 hours (30 days)');
   }
 
   const repos = parseRepos(reposToCheck);
