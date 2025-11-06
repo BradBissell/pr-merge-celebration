@@ -1,0 +1,26 @@
+name: 'PR Merge Celebration'
+description: 'Celebrate merged pull requests by posting fun messages to Slack'
+author: 'Your Name'
+branding:
+  icon: 'award'
+  color: 'purple'
+
+inputs:
+  github-token:
+    description: 'GitHub token for API access'
+    required: true
+    default: ${{ github.token }}
+  slack-webhook-url:
+    description: 'Slack webhook URL for posting messages'
+    required: true
+  repos-to-check:
+    description: 'Comma-separated list of repositories to check (format: owner/repo,owner/repo)'
+    required: true
+  merge-window:
+    description: 'Number of hours to look back for merged PRs'
+    required: false
+    default: '24'
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
