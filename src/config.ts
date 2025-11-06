@@ -14,6 +14,10 @@ export function getConfig() {
     throw new Error('SLACK_WEBHOOK_URL environment variable is required');
   }
 
+  if (!slackWebhookUrl.startsWith('https://hooks.slack.com/')) {
+    throw new Error('SLACK_WEBHOOK_URL must be a valid Slack webhook URL (should start with https://hooks.slack.com/)');
+  }
+
   if (!reposToCheck) {
     throw new Error('REPOS_TO_CHECK environment variable is required (format: owner/repo,owner/repo)');
   }
