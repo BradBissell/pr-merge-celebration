@@ -1,6 +1,6 @@
 # PR Merge Celebration Bot
 
-A fun GitHub Action that celebrates merged pull requests by posting celebratory messages to Slack! This bot checks your repositories daily and sends a fun summary of all PRs merged in the past 24 hours.
+A GitHub Action that celebrates merged pull requests by posting celebratory messages to Slack. Pair it with a github cron workflow (example included) to regularly celebrate your colleagues' work by checking your repositories daily and sending a  summary of all PRs merged in the past given window (defaults to 1 day).
 
 ## Features
 

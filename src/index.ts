@@ -1,15 +1,16 @@
+import chalk from 'chalk';
 import { GitHubClient } from './github';
 import { SlackNotifier } from './slack';
 import { getConfig } from './config';
 
 async function main() {
   try {
-    console.log('🎉 Starting PR Merge Celebration Bot...\n');
+    console.log(chalk.bold.magenta('🎉 Starting PR Merge Celebration Bot...\n'));
 
     // Load configuration
     const config = getConfig();
-    console.log(`Checking ${config.repos.length} repository(ies):`);
-    config.repos.forEach((repo) => console.log(`  - ${repo.owner}/${repo.repo}`));
+    console.log(chalk.cyan(`Checking ${chalk.bold(config.repos.length.toString())} repository(ies):`));
+    config.repos.forEach((repo) => console.log(chalk.gray(`  - ${repo.owner}/${repo.repo}`)));
     console.log('');
 
     // Initialize clients
@@ -17,15 +18,15 @@ async function main() {
     const slackNotifier = new SlackNotifier(config.slackWebhookUrl);
 
     // Fetch merged PRs from the configured time window
-    console.log(`Looking back ${config.mergeWindowHours} hours for merged PRs\n`);
+    console.log(chalk.blue(`Looking back ${chalk.bold(config.mergeWindowHours.toString())} hours for merged PRs\n`));
     const mergedPRs = await githubClient.getMergedPRsInTimeWindow(config.repos, config.mergeWindowHours);
 
-    console.log(`\nTotal merged PRs found: ${mergedPRs.length}\n`);
+    console.log(chalk.yellow(`\nTotal merged PRs found: ${chalk.bold(mergedPRs.length.toString())}\n`));
 
     if (mergedPRs.length > 0) {
-      console.log('Merged PRs:');
+      console.log(chalk.green('Merged PRs:'));
       mergedPRs.forEach((pr) => {
-        console.log(`  - ${pr.repository}#${pr.number}: ${pr.title} (by ${pr.author})`);
+        console.log(chalk.white(`  - ${chalk.bold(pr.repository)}#${pr.number}: ${pr.title} ${chalk.gray(`(by ${pr.author})`)}`));
       });
       console.log('');
     }
@@ -33,9 +34,9 @@ async function main() {
     // Send celebration to Slack
     await slackNotifier.sendCelebration(mergedPRs);
 
-    console.log('\n✅ PR Celebration complete!');
+    console.log(chalk.bold.green('\n✅ PR Celebration complete!'));
   } catch (error) {
-    console.error('\n❌ Error running PR celebration:', error);
+    console.error(chalk.bold.red('\n❌ Error running PR celebration:'), error);
     process.exit(1);
   }
 }

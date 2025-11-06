@@ -1,3 +1,4 @@
+import chalk from "chalk";
 import axios from "axios";
 import { MergedPR } from "./types";
 
@@ -10,7 +11,9 @@ export class SlackNotifier {
 
   async sendCelebration(prs: MergedPR[]): Promise<void> {
     if (prs.length === 0) {
-      console.log("No merged PRs found - skipping Slack notification");
+      console.log(
+        chalk.yellow("No merged PRs found - skipping Slack notification")
+      );
       return;
     }
 
@@ -19,10 +22,12 @@ export class SlackNotifier {
     try {
       await axios.post(this.webhookUrl, message);
       console.log(
-        `Successfully sent celebration for ${prs.length} PRs to Slack!`
+        chalk.green(
+          `Successfully sent celebration for ${chalk.bold(prs.length.toString())} PRs to Slack!`
+        )
       );
     } catch (error) {
-      console.error("Error sending message to Slack:", error);
+      console.error(chalk.red("Error sending message to Slack:"), error);
       throw error;
     }
   }

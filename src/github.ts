@@ -1,3 +1,4 @@
+import chalk from 'chalk';
 import { Octokit } from '@octokit/rest';
 import { MergedPR, RepoConfig } from './types';
 
@@ -15,7 +16,7 @@ export class GitHubClient {
 
     for (const { owner, repo } of repos) {
       try {
-        console.log(`Checking ${owner}/${repo} for merged PRs...`);
+        console.log(chalk.blue(`Checking ${chalk.bold(`${owner}/${repo}`)} for merged PRs...`));
 
         // Fetch recently closed PRs
         const { data: pullRequests } = await this.octokit.pulls.list({
@@ -34,7 +35,7 @@ export class GitHubClient {
           return mergedAt >= cutoffTime;
         });
 
-        console.log(`Found ${mergedPRs.length} merged PRs in ${owner}/${repo}`);
+        console.log(chalk.green(`Found ${chalk.bold(mergedPRs.length.toString())} merged PRs in ${owner}/${repo}`));
 
         // Map to our MergedPR type
         const formattedPRs: MergedPR[] = mergedPRs.map((pr) => ({
@@ -49,7 +50,7 @@ export class GitHubClient {
 
         allPRs.push(...formattedPRs);
       } catch (error) {
-        console.error(`Error fetching PRs for ${owner}/${repo}:`, error);
+        console.error(chalk.red(`Error fetching PRs for ${owner}/${repo}:`), error);
       }
     }
 
