@@ -11,8 +11,7 @@ export class GitHubClient {
 
   async getMergedPRsInTimeWindow(repos: RepoConfig[], hoursBack: number = 24): Promise<MergedPR[]> {
     const allPRs: MergedPR[] = [];
-    const cutoffTime = new Date();
-    cutoffTime.setHours(cutoffTime.getHours() - hoursBack);
+    const cutoffTime = new Date(Date.now() - hoursBack * 60 * 60 * 1000);
 
     for (const { owner, repo } of repos) {
       try {
