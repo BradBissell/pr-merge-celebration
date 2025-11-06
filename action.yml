@@ -1,6 +1,6 @@
 name: 'PR Merge Celebration'
 description: 'Celebrate merged pull requests by posting fun messages to Slack'
-author: 'Your Name'
+author: 'brad.bissell'
 branding:
   icon: 'award'
   color: 'purple'
