@@ -1,3 +1,4 @@
+import * as core from '@actions/core';
 import chalk from 'chalk';
 import { GitHubClient } from './github';
 import { SlackNotifier } from './slack';
@@ -6,6 +7,20 @@ import { getConfig } from './config';
 async function main() {
   try {
     console.log(chalk.bold.magenta('🎉 Starting PR Merge Celebration Bot...\n'));
+
+    // Read GitHub Actions inputs if available, otherwise fall back to env vars
+    if (core.getInput('github-token')) {
+      process.env.GITHUB_TOKEN = core.getInput('github-token');
+    }
+    if (core.getInput('slack-webhook-url')) {
+      process.env.SLACK_WEBHOOK_URL = core.getInput('slack-webhook-url');
+    }
+    if (core.getInput('repos-to-check')) {
+      process.env.REPOS_TO_CHECK = core.getInput('repos-to-check');
+    }
+    if (core.getInput('merge-window')) {
+      process.env.MERGE_WINDOW = core.getInput('merge-window');
+    }
 
     // Load configuration
     const config = getConfig();
