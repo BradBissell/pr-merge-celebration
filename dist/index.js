@@ -36579,11 +36579,11 @@ class SlackNotifier {
         message += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n";
         // Add PRs grouped by repository
         Object.entries(repoGroups).forEach(([repo, repoPRs]) => {
-            message += `📦 *${repo}*\n\n`;
+            message += `📦 ${repo}\n\n`;
             repoPRs.forEach((pr) => {
-                message += `  • #${pr.number}: ${pr.title}\n`;
-                message += `    ${pr.url}\n`;
-                message += `    _by @${pr.author}_\n\n`;
+                message += `  • 🔀 #${pr.number}: ${pr.title}\n`;
+                message += `        -👤 @${pr.author}\n`;
+                message += `        -${pr.url}\n\n`;
             });
         });
         message += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n";
@@ -36644,7 +36644,7 @@ class SlackNotifier {
                     type: "section",
                     text: {
                         type: "mrkdwn",
-                        text: `• <${pr.url}|#${pr.number}: ${pr.title}>\n  _by @${pr.author}_`,
+                        text: `• 🔀 <${pr.url}|#${pr.number}: ${pr.title}>\n  _👤 @${pr.author}_`,
                     },
                 });
             });

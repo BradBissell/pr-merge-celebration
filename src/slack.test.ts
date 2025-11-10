@@ -231,8 +231,9 @@ describe('SlackNotifier', () => {
 
       expect(prSections.length).toBeGreaterThan(0);
       const prBlock = prSections[0];
+      expect(prBlock.text.text).toContain('🔀');
       expect(prBlock.text.text).toContain('Add amazing feature');
-      expect(prBlock.text.text).toContain('@alice');
+      expect(prBlock.text.text).toContain('👤 @alice');
       expect(prBlock.text.text).toContain('https://github.com/octocat/hello-world/pull/123');
     });
 
@@ -478,8 +479,9 @@ describe('SlackNotifier', () => {
       const sentMessage = (axios.post as any).mock.calls[0][1];
       expect(sentMessage).toHaveProperty('message');
       expect(typeof sentMessage.message).toBe('string');
+      expect(sentMessage.message).toContain('🔀');
       expect(sentMessage.message).toContain('Test PR');
-      expect(sentMessage.message).toContain('@alice');
+      expect(sentMessage.message).toContain('👤 @alice');
       expect(sentMessage.message).toContain('https://github.com/octocat/hello-world/pull/123');
       expect(consoleLogSpy).toHaveBeenCalledWith(
         expect.stringContaining('workflow webhook')
@@ -510,8 +512,9 @@ describe('SlackNotifier', () => {
       const sentMessage = (axios.post as any).mock.calls[0][1];
       expect(sentMessage).toHaveProperty('message');
       expect(typeof sentMessage.message).toBe('string');
+      expect(sentMessage.message).toContain('🔀');
       expect(sentMessage.message).toContain('Fix bug');
-      expect(sentMessage.message).toContain('@bob');
+      expect(sentMessage.message).toContain('👤 @bob');
     });
 
     it('should include all PR details in workflow webhook text message', async () => {
@@ -553,17 +556,17 @@ describe('SlackNotifier', () => {
       expect(sentMessage.message).toContain('*2* contributor');
 
       // Check repo grouping
-      expect(sentMessage.message).toContain('📦 *org/repo1*');
-      expect(sentMessage.message).toContain('📦 *org/repo2*');
+      expect(sentMessage.message).toContain('📦 org/repo1');
+      expect(sentMessage.message).toContain('📦 org/repo2');
 
       // Check PR details
-      expect(sentMessage.message).toContain('#100: Add feature A');
+      expect(sentMessage.message).toContain('🔀 #100: Add feature A');
       expect(sentMessage.message).toContain('https://github.com/org/repo1/pull/100');
-      expect(sentMessage.message).toContain('_by @alice_');
+      expect(sentMessage.message).toContain('👤 @alice');
 
-      expect(sentMessage.message).toContain('#200: Fix bug B');
+      expect(sentMessage.message).toContain('🔀 #200: Fix bug B');
       expect(sentMessage.message).toContain('https://github.com/org/repo2/pull/200');
-      expect(sentMessage.message).toContain('_by @bob_');
+      expect(sentMessage.message).toContain('👤 @bob');
 
       // Check footer
       expect(sentMessage.message).toContain('🙌 Amazing work everyone! Keep shipping! 🙌');

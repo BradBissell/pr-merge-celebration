@@ -184,11 +184,11 @@ Includes clickable PR links, rich formatting, and Block Kit elements:
 
 📦 octocat/Hello-World
 
-• #123: Add amazing new feature    [clickable link]
-  by @alice
+• 🔀 #123: Add amazing new feature    [clickable link]
+  👤 @alice
 
-• #124: Fix critical bug           [clickable link]
-  by @bob
+• 🔀 #124: Fix critical bug           [clickable link]
+  👤 @bob
 
 ────────────────────────────────
 
@@ -206,15 +206,15 @@ Simple text with emojis and unicode formatting:
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-📦 *octocat/Hello-World*
+📦 octocat/Hello-World
 
-  • #123: Add amazing new feature
+  • 🔀 #123: Add amazing new feature
+    👤 @alice
     https://github.com/octocat/Hello-World/pull/123
-    _by @alice_
 
-  • #124: Fix critical bug
+  • 🔀 #124: Fix critical bug
+    👤 @bob
     https://github.com/octocat/Hello-World/pull/124
-    _by @bob_
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
