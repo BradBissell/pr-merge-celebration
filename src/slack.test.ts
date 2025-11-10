@@ -328,7 +328,7 @@ describe('SlackNotifier', () => {
 
       await slackNotifier.sendCelebration(prs);
 
-      expect(consoleLogSpy).toHaveBeenCalledWith('Successfully sent celebration for 1 PRs to Slack!');
+      expect(consoleLogSpy).toHaveBeenCalledWith('Successfully sent celebration for 1 PRs to Slack (incoming webhook)!');
 
       consoleLogSpy.mockRestore();
     });
@@ -421,6 +421,152 @@ describe('SlackNotifier', () => {
       );
 
       expect(prSections.length).toBe(2);
+    });
+  });
+
+  describe('Webhook type detection and formatting', () => {
+    it('should detect incoming webhook from URL and send Block Kit format', async () => {
+      const incomingWebhookUrl = 'https://hooks.slack.com/services/T00000000/B00000000/XXXX';
+      const notifier = new SlackNotifier(incomingWebhookUrl);
+      const prs: MergedPR[] = [
+        {
+          title: 'Test PR',
+          number: 123,
+          author: 'alice',
+          authorAvatar: 'https://avatar.com/alice',
+          url: 'https://github.com/octocat/hello-world/pull/123',
+          mergedAt: '2024-01-01T12:00:00Z',
+          repository: 'octocat/hello-world',
+        },
+      ];
+
+      (axios.post as any).mockResolvedValue({ status: 200 });
+      const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+      await notifier.sendCelebration(prs);
+
+      const sentMessage = (axios.post as any).mock.calls[0][1];
+      expect(sentMessage).toHaveProperty('blocks');
+      expect(Array.isArray(sentMessage.blocks)).toBe(true);
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        expect.stringContaining('incoming webhook')
+      );
+
+      consoleLogSpy.mockRestore();
+    });
+
+    it('should detect workflow webhook from URL with /workflows/ and send simple text format', async () => {
+      const workflowWebhookUrl = 'https://hooks.slack.com/workflows/T00000000/A00000000/XXXX';
+      const notifier = new SlackNotifier(workflowWebhookUrl);
+      const prs: MergedPR[] = [
+        {
+          title: 'Test PR',
+          number: 123,
+          author: 'alice',
+          authorAvatar: 'https://avatar.com/alice',
+          url: 'https://github.com/octocat/hello-world/pull/123',
+          mergedAt: '2024-01-01T12:00:00Z',
+          repository: 'octocat/hello-world',
+        },
+      ];
+
+      (axios.post as any).mockResolvedValue({ status: 200 });
+      const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+      await notifier.sendCelebration(prs);
+
+      const sentMessage = (axios.post as any).mock.calls[0][1];
+      expect(sentMessage).toHaveProperty('message');
+      expect(typeof sentMessage.message).toBe('string');
+      expect(sentMessage.message).toContain('Test PR');
+      expect(sentMessage.message).toContain('@alice');
+      expect(sentMessage.message).toContain('https://github.com/octocat/hello-world/pull/123');
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        expect.stringContaining('workflow webhook')
+      );
+
+      consoleLogSpy.mockRestore();
+    });
+
+    it('should detect workflow webhook from URL with /triggers/ and send simple text format', async () => {
+      const triggerWebhookUrl = 'https://hooks.slack.com/triggers/T00000000/1234567890/XXXX';
+      const notifier = new SlackNotifier(triggerWebhookUrl);
+      const prs: MergedPR[] = [
+        {
+          title: 'Fix bug',
+          number: 456,
+          author: 'bob',
+          authorAvatar: 'https://avatar.com/bob',
+          url: 'https://github.com/microsoft/vscode/pull/456',
+          mergedAt: '2024-01-01T14:00:00Z',
+          repository: 'microsoft/vscode',
+        },
+      ];
+
+      (axios.post as any).mockResolvedValue({ status: 200 });
+
+      await notifier.sendCelebration(prs);
+
+      const sentMessage = (axios.post as any).mock.calls[0][1];
+      expect(sentMessage).toHaveProperty('message');
+      expect(typeof sentMessage.message).toBe('string');
+      expect(sentMessage.message).toContain('Fix bug');
+      expect(sentMessage.message).toContain('@bob');
+    });
+
+    it('should include all PR details in workflow webhook text message', async () => {
+      const workflowWebhookUrl = 'https://hooks.slack.com/workflows/T00000000/A00000000/XXXX';
+      const notifier = new SlackNotifier(workflowWebhookUrl, 48);
+      const prs: MergedPR[] = [
+        {
+          title: 'Add feature A',
+          number: 100,
+          author: 'alice',
+          authorAvatar: 'https://avatar.com/alice',
+          url: 'https://github.com/org/repo1/pull/100',
+          mergedAt: '2024-01-01T12:00:00Z',
+          repository: 'org/repo1',
+        },
+        {
+          title: 'Fix bug B',
+          number: 200,
+          author: 'bob',
+          authorAvatar: 'https://avatar.com/bob',
+          url: 'https://github.com/org/repo2/pull/200',
+          mergedAt: '2024-01-01T14:00:00Z',
+          repository: 'org/repo2',
+        },
+      ];
+
+      (axios.post as any).mockResolvedValue({ status: 200 });
+
+      await notifier.sendCelebration(prs);
+
+      const sentMessage = (axios.post as any).mock.calls[0][1];
+
+      // Check header is present
+      expect(sentMessage.message).toMatch(/[🎉🚀✨🎊🎈🌟💫🔥]/);
+
+      // Check summary with counts
+      expect(sentMessage.message).toContain('*2* awesome PR');
+      expect(sentMessage.message).toContain('48 hours');
+      expect(sentMessage.message).toContain('*2* contributor');
+
+      // Check repo grouping
+      expect(sentMessage.message).toContain('📦 *org/repo1*');
+      expect(sentMessage.message).toContain('📦 *org/repo2*');
+
+      // Check PR details
+      expect(sentMessage.message).toContain('#100: Add feature A');
+      expect(sentMessage.message).toContain('https://github.com/org/repo1/pull/100');
+      expect(sentMessage.message).toContain('_by @alice_');
+
+      expect(sentMessage.message).toContain('#200: Fix bug B');
+      expect(sentMessage.message).toContain('https://github.com/org/repo2/pull/200');
+      expect(sentMessage.message).toContain('_by @bob_');
+
+      // Check footer
+      expect(sentMessage.message).toContain('🙌 Amazing work everyone! Keep shipping! 🙌');
     });
   });
 });

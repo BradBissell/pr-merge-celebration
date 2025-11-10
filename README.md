@@ -19,14 +19,34 @@ A GitHub Action that celebrates merged pull requests by posting celebratory mess
 
 ### 1. Create a Slack Webhook
 
-1. Go to your Slack workspace's [Incoming Webhooks](https://api.slack.com/messaging/webhooks) page
+This action supports **both** Slack webhook types:
+- **Incoming Webhooks** (Recommended) - Rich formatted messages with Block Kit
+- **Workflow Webhooks** - Simple text messages
+
+The action automatically detects which type you're using based on the webhook URL.
+
+#### Option A: Incoming Webhook (Recommended - Rich Formatting)
+
+Creates beautifully formatted messages with headers, dividers, clickable links, and rich formatting.
+
+1. Go to https://api.slack.com/apps
 2. Click "Create New App" → "From scratch"
 3. Name your app (e.g., "PR Celebration Bot") and select your workspace
 4. Click "Incoming Webhooks" from the left sidebar
-5. Toggle "Activate Incoming Webhooks" to On
+5. Toggle "Activate Incoming Webhooks" to **On**
 6. Click "Add New Webhook to Workspace"
 7. Select the channel where you want celebrations posted
 8. Copy the webhook URL (starts with `https://hooks.slack.com/services/...`)
+
+#### Option B: Workflow Webhook (Simple Text)
+
+Uses plain text formatting with emojis and unicode characters. Good for existing workflow integrations.
+
+1. Go to https://slack.com/apps → Search for "Workflow Builder"
+2. Create a new workflow or edit an existing one
+3. Add a "Webhook" trigger or variable
+4. Copy the webhook URL (starts with `https://hooks.slack.com/workflows/...` or `https://hooks.slack.com/triggers/...`)
+5. Configure your workflow to accept a variable named `message` (string type)
 
 ### 2. Configure GitHub Repository Secrets
 
@@ -146,12 +166,17 @@ You can manually trigger the workflow to test it:
    pnpm run dev
    ```
 
-## Example Slack Message
+## Example Slack Messages
 
-The bot sends messages that look like this:
+The bot automatically formats messages based on your webhook type:
+
+### Incoming Webhook (Rich Format)
+
+Includes clickable PR links, rich formatting, and Block Kit elements:
 
 ```
 🎉 Time to Celebrate! 🎉
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 3 awesome PRs merged in the last 24 hours by 2 contributors!
 
@@ -159,13 +184,39 @@ The bot sends messages that look like this:
 
 📦 octocat/Hello-World
 
-• #123: Add amazing new feature
+• #123: Add amazing new feature    [clickable link]
   by @alice
 
-• #124: Fix critical bug
+• #124: Fix critical bug           [clickable link]
   by @bob
 
 ────────────────────────────────
+
+🙌 Amazing work everyone! Keep shipping! 🙌
+```
+
+### Workflow Webhook (Text Format)
+
+Simple text with emojis and unicode formatting:
+
+```
+🎉 Time to Celebrate! 🎉
+
+*3* awesome PRs merged in the last 24 hours by *2* contributors!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📦 *octocat/Hello-World*
+
+  • #123: Add amazing new feature
+    https://github.com/octocat/Hello-World/pull/123
+    _by @alice_
+
+  • #124: Fix critical bug
+    https://github.com/octocat/Hello-World/pull/124
+    _by @bob_
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🙌 Amazing work everyone! Keep shipping! 🙌
 ```
@@ -211,6 +262,10 @@ Set the `MERGE_WINDOW` environment variable or use the `merge-window` action inp
 **Slack webhook errors**
 - Verify your `SLACK_WEBHOOK_URL` is correct
 - Check that the Slack app is still installed in your workspace
+- The action automatically detects and supports both webhook types:
+  - **Incoming Webhooks**: `https://hooks.slack.com/services/...` (rich formatting with Block Kit)
+  - **Workflow Webhooks**: `https://hooks.slack.com/workflows/...` or `https://hooks.slack.com/triggers/...` (simple text)
+- For workflow webhooks, ensure your workflow is configured to accept a `message` variable (string type)
 
 ## Releasing to GitHub Marketplace
 

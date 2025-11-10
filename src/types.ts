@@ -45,6 +45,21 @@ export type SlackBlock =
   | SlackDividerBlock
   | SlackContextBlock;
 
-export interface SlackMessage {
+// Slack Incoming Webhook message format (supports Block Kit)
+export interface SlackBlockMessage {
   blocks: SlackBlock[];
+}
+
+// Slack Workflow Webhook message format (simple text only)
+export interface SlackWorkflowMessage {
+  message: string;
+}
+
+// Union type for all Slack message formats
+export type SlackMessage = SlackBlockMessage | SlackWorkflowMessage;
+
+// Webhook type enum
+export enum WebhookType {
+  INCOMING = 'incoming',
+  WORKFLOW = 'workflow',
 }
