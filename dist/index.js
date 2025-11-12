@@ -7977,7 +7977,7 @@ module.exports = typeof Reflect !== 'undefined' && Reflect && Reflect.apply;
 "use strict";
 
 const ansiStyles = __nccwpck_require__(5908);
-const {stdout: stdoutColor, stderr: stderrColor} = __nccwpck_require__(4327);
+const {stdout: stdoutColor, stderr: stderrColor} = __nccwpck_require__(6708);
 const {
 	stringReplaceAll,
 	stringEncaseCRLFWithFirstIndex
@@ -10070,7 +10070,7 @@ function localstorage() {
 	}
 }
 
-module.exports = __nccwpck_require__(969)(exports);
+module.exports = __nccwpck_require__(3350)(exports);
 
 const {formatters} = module.exports;
 
@@ -10089,7 +10089,7 @@ formatters.j = function (v) {
 
 /***/ }),
 
-/***/ 969:
+/***/ 3350:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 
@@ -10439,7 +10439,7 @@ exports.colors = [6, 2, 3, 4, 5, 1];
 try {
 	// Optional dependency (as in, doesn't need to be installed, NOT like optionalDependencies in package.json)
 	// eslint-disable-next-line import/no-extraneous-dependencies
-	const supportsColor = __nccwpck_require__(4327);
+	const supportsColor = __nccwpck_require__(6708);
 
 	if (supportsColor && (supportsColor.stderr || supportsColor).level >= 2) {
 		exports.colors = [
@@ -10647,7 +10647,7 @@ function init(debug) {
 	}
 }
 
-module.exports = __nccwpck_require__(969)(exports);
+module.exports = __nccwpck_require__(3350)(exports);
 
 const {formatters} = module.exports;
 
@@ -11750,7 +11750,7 @@ var mime = __nccwpck_require__(2922);
 var asynckit = __nccwpck_require__(9591);
 var setToStringTag = __nccwpck_require__(8310);
 var hasOwn = __nccwpck_require__(4403);
-var populate = __nccwpck_require__(2172);
+var populate = __nccwpck_require__(9791);
 
 /**
  * Create readable "multipart/form-data" streams.
@@ -12233,7 +12233,7 @@ module.exports = FormData;
 
 /***/ }),
 
-/***/ 2172:
+/***/ 9791:
 /***/ ((module) => {
 
 "use strict";
@@ -13615,7 +13615,7 @@ exports.getProxyForUrl = getProxyForUrl;
 
 /***/ }),
 
-/***/ 4327:
+/***/ 6708:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 "use strict";
@@ -17482,7 +17482,7 @@ function onHTTP2GoAway (code) {
   resume(client)
 }
 
-const constants = __nccwpck_require__(9791)
+const constants = __nccwpck_require__(2172)
 const createRedirectInterceptor = __nccwpck_require__(2750)
 const EMPTY_BUF = Buffer.alloc(0)
 
@@ -30561,7 +30561,7 @@ const {
   staticPropertyDescriptors,
   readOperation,
   fireAProgressEvent
-} = __nccwpck_require__(3350)
+} = __nccwpck_require__(969)
 const {
   kState,
   kError,
@@ -31007,7 +31007,7 @@ module.exports = {
 
 /***/ }),
 
-/***/ 3350:
+/***/ 969:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 "use strict";
@@ -32091,7 +32091,7 @@ module.exports = createRedirectInterceptor
 
 /***/ }),
 
-/***/ 9791:
+/***/ 2172:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -34240,7 +34240,7 @@ const {
   kSentClose,
   kByteParser,
   kReceivedClose
-} = __nccwpck_require__(6708)
+} = __nccwpck_require__(4327)
 const { fireEvent, failWebsocketConnection } = __nccwpck_require__(8829)
 const { CloseEvent } = __nccwpck_require__(6544)
 const { makeRequest } = __nccwpck_require__(8939)
@@ -34986,7 +34986,7 @@ module.exports = {
 const { Writable } = __nccwpck_require__(2203)
 const diagnosticsChannel = __nccwpck_require__(1637)
 const { parserStates, opcodes, states, emptyBuffer } = __nccwpck_require__(8420)
-const { kReadyState, kSentClose, kResponse, kReceivedClose } = __nccwpck_require__(6708)
+const { kReadyState, kSentClose, kResponse, kReceivedClose } = __nccwpck_require__(4327)
 const { isValidStatusCode, failWebsocketConnection, websocketMessageReceived } = __nccwpck_require__(8829)
 const { WebsocketFrameSend } = __nccwpck_require__(2308)
 
@@ -35329,7 +35329,7 @@ module.exports = {
 
 /***/ }),
 
-/***/ 6708:
+/***/ 4327:
 /***/ ((module) => {
 
 "use strict";
@@ -35355,7 +35355,7 @@ module.exports = {
 "use strict";
 
 
-const { kReadyState, kController, kResponse, kBinaryType, kWebSocketURL } = __nccwpck_require__(6708)
+const { kReadyState, kController, kResponse, kBinaryType, kWebSocketURL } = __nccwpck_require__(4327)
 const { states, opcodes } = __nccwpck_require__(8420)
 const { MessageEvent, ErrorEvent } = __nccwpck_require__(6544)
 
@@ -35576,7 +35576,7 @@ const {
   kResponse,
   kSentClose,
   kByteParser
-} = __nccwpck_require__(6708)
+} = __nccwpck_require__(4327)
 const { isEstablished, isClosing, isValidSubprotocol, failWebsocketConnection, fireEvent } = __nccwpck_require__(8829)
 const { establishWebSocketConnection } = __nccwpck_require__(9277)
 const { WebsocketFrameSend } = __nccwpck_require__(2308)
@@ -36273,34 +36273,78 @@ function wrappy (fn, cb) {
 /***/ }),
 
 /***/ 6878:
-/***/ ((__unused_webpack_module, exports) => {
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getConfig = getConfig;
+const core = __importStar(__nccwpck_require__(6966));
+const chalk_1 = __importDefault(__nccwpck_require__(1702));
 function getConfig() {
-    const githubToken = process.env.GITHUB_TOKEN;
-    const slackWebhookUrl = process.env.SLACK_WEBHOOK_URL;
-    const reposToCheck = process.env.REPOS_TO_CHECK;
-    const mergeWindow = process.env.MERGE_WINDOW || '24';
+    // Read GitHub Actions inputs if available, otherwise fall back to env vars
+    const githubToken = core.getInput("github-token") || process.env.GITHUB_TOKEN;
+    const slackWebhookUrl = core.getInput("slack-webhook-url") || process.env.SLACK_WEBHOOK_URL;
+    const reposToCheck = core.getInput("repos-to-check") || process.env.REPOS_TO_CHECK;
+    const mergeWindow = core.getInput("merge-window") || process.env.MERGE_WINDOW || "24";
     if (!githubToken) {
-        throw new Error('GITHUB_TOKEN environment variable is required');
+        throw new Error("GITHUB_TOKEN environment variable is required");
     }
     if (!slackWebhookUrl) {
-        throw new Error('SLACK_WEBHOOK_URL environment variable is required');
+        throw new Error("SLACK_WEBHOOK_URL environment variable is required");
     }
-    if (!slackWebhookUrl.startsWith('https://hooks.slack.com/')) {
-        throw new Error('SLACK_WEBHOOK_URL must be a valid Slack webhook URL (should start with https://hooks.slack.com/)');
+    if (!slackWebhookUrl.startsWith("https://hooks.slack.com/")) {
+        throw new Error("SLACK_WEBHOOK_URL must be a valid Slack webhook URL (should start with https://hooks.slack.com/)");
     }
     if (!reposToCheck) {
-        throw new Error('REPOS_TO_CHECK environment variable is required (format: owner/repo,owner/repo)');
+        throw new Error("REPOS_TO_CHECK environment variable is required (format: owner/repo,owner/repo)");
     }
     const mergeWindowHours = parseInt(mergeWindow, 10);
-    if (isNaN(mergeWindowHours) || mergeWindowHours <= 0 || mergeWindowHours > 720) {
-        throw new Error('MERGE_WINDOW must be a positive number between 1 and 720 hours (30 days)');
+    if (isNaN(mergeWindowHours) ||
+        mergeWindowHours <= 0 ||
+        mergeWindowHours > 720) {
+        throw new Error("MERGE_WINDOW must be a positive number between 1 and 720 hours (30 days)");
     }
     const repos = parseRepos(reposToCheck);
+    console.log(chalk_1.default.cyan(`Checking ${chalk_1.default.bold(repos.length.toString())} repository(ies):`));
+    repos.forEach((repo) => console.log(chalk_1.default.gray(`  - ${repo.owner}/${repo.repo}`)));
+    console.log("");
     return {
         githubToken,
         slackWebhookUrl,
@@ -36310,11 +36354,11 @@ function getConfig() {
 }
 function parseRepos(reposString) {
     const repos = reposString
-        .split(',')
+        .split(",")
         .map((repo) => repo.trim())
         .filter((repo) => repo.length > 0);
     return repos.map((repo) => {
-        const [owner, name] = repo.split('/');
+        const [owner, name] = repo.split("/");
         if (!owner || !name) {
             throw new Error(`Invalid repo format: ${repo}. Expected format: owner/repo`);
         }
@@ -36413,44 +36457,10 @@ exports.GitHubClient = GitHubClient;
 
 "use strict";
 
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-const core = __importStar(__nccwpck_require__(6966));
 const chalk_1 = __importDefault(__nccwpck_require__(1702));
 const github_1 = __nccwpck_require__(4171);
 const slack_1 = __nccwpck_require__(8638);
@@ -36458,24 +36468,8 @@ const config_1 = __nccwpck_require__(6878);
 async function main() {
     try {
         console.log(chalk_1.default.bold.magenta('🎉 Starting PR Merge Celebration Bot...\n'));
-        // Read GitHub Actions inputs if available, otherwise fall back to env vars
-        if (core.getInput('github-token')) {
-            process.env.GITHUB_TOKEN = core.getInput('github-token');
-        }
-        if (core.getInput('slack-webhook-url')) {
-            process.env.SLACK_WEBHOOK_URL = core.getInput('slack-webhook-url');
-        }
-        if (core.getInput('repos-to-check')) {
-            process.env.REPOS_TO_CHECK = core.getInput('repos-to-check');
-        }
-        if (core.getInput('merge-window')) {
-            process.env.MERGE_WINDOW = core.getInput('merge-window');
-        }
         // Load configuration
         const config = (0, config_1.getConfig)();
-        console.log(chalk_1.default.cyan(`Checking ${chalk_1.default.bold(config.repos.length.toString())} repository(ies):`));
-        config.repos.forEach((repo) => console.log(chalk_1.default.gray(`  - ${repo.owner}/${repo.repo}`)));
-        console.log('');
         // Initialize clients
         const githubClient = new github_1.GitHubClient(config.githubToken);
         const slackNotifier = new slack_1.SlackNotifier(config.slackWebhookUrl, config.mergeWindowHours);
@@ -36556,6 +36550,21 @@ class SlackNotifier {
         }
     }
     /**
+     * Get day-specific celebration header
+     */
+    getDayHeader() {
+        const dayOfWeek = new Date().getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+        const headers = {
+            1: "Monday Merge Magic!",
+            2: "Turbo Tuesday!",
+            3: "Winning Wednesday!",
+            4: "Throwdown Thursday!",
+            5: "Fantastic Friday!",
+        };
+        // Default for weekends or if not Mon-Fri
+        return headers[dayOfWeek] || "Time to Celebrate!";
+    }
+    /**
      * Build a simple text message for Slack Workflow Webhooks
      * Workflow webhooks only support plain text in the format: {"message": "text"}
      */
@@ -36564,15 +36573,7 @@ class SlackNotifier {
         const repoGroups = this.groupPRsByRepo(prs);
         const celebrationEmojis = ["🎉", "🚀", "✨", "🎊", "🎈", "🌟", "💫", "🔥"];
         const randomEmoji = celebrationEmojis[Math.floor(Math.random() * celebrationEmojis.length)];
-        const headers = [
-            "Time to Celebrate!",
-            "Victory Lap Time!",
-            "Code Champions Alert!",
-            "Merge Party!",
-            "Ship It Sandwich!",
-            "PR Power Hour!",
-        ];
-        const headerText = headers[Math.floor(Math.random() * headers.length)];
+        const headerText = this.getDayHeader();
         // Build the text message with nice formatting
         let message = `${randomEmoji} ${headerText} ${randomEmoji}\n\n`;
         message += `*${prs.length}* awesome PR${prs.length > 1 ? "s" : ""} merged in the last ${this.mergeWindowHours} hour${this.mergeWindowHours !== 1 ? "s" : ""} by *${uniqueAuthors.size}* contributor${uniqueAuthors.size > 1 ? "s" : ""}!\n\n`;
@@ -36581,9 +36582,9 @@ class SlackNotifier {
         Object.entries(repoGroups).forEach(([repo, repoPRs]) => {
             message += `📦 ${repo}\n\n`;
             repoPRs.forEach((pr) => {
-                message += `  • 🔀 #${pr.number}: ${pr.title}\n`;
-                message += `        -👤 @${pr.author}\n`;
-                message += `        -${pr.url}\n\n`;
+                message += `  • ${pr.title}\n`;
+                message += `        - @${pr.author}\n`;
+                message += `        - ${pr.url}\n\n`;
             });
         });
         message += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n";
@@ -36599,16 +36600,7 @@ class SlackNotifier {
         const repoGroups = this.groupPRsByRepo(prs);
         const celebrationEmojis = ["🎉", "🚀", "✨", "🎊", "🎈", "🌟", "💫", "🔥"];
         const randomEmoji = celebrationEmojis[Math.floor(Math.random() * celebrationEmojis.length)];
-        // Fun header messages
-        const headers = [
-            "Time to Celebrate!",
-            "Victory Lap Time!",
-            "Code Champions Alert!",
-            "Merge Party!",
-            "Ship It Sandwich!",
-            "PR Power Hour!",
-        ];
-        const headerText = headers[Math.floor(Math.random() * headers.length)];
+        const headerText = this.getDayHeader();
         // Build the message blocks
         const blocks = [
             {

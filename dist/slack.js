@@ -46,6 +46,21 @@ class SlackNotifier {
         }
     }
     /**
+     * Get day-specific celebration header
+     */
+    getDayHeader() {
+        const dayOfWeek = new Date().getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+        const headers = {
+            1: "Monday Merge Magic!",
+            2: "Turbo Tuesday!",
+            3: "Winning Wednesday!",
+            4: "Throwdown Thursday!",
+            5: "Fantastic Friday!",
+        };
+        // Default for weekends or if not Mon-Fri
+        return headers[dayOfWeek] || "Time to Celebrate!";
+    }
+    /**
      * Build a simple text message for Slack Workflow Webhooks
      * Workflow webhooks only support plain text in the format: {"message": "text"}
      */
@@ -54,15 +69,7 @@ class SlackNotifier {
         const repoGroups = this.groupPRsByRepo(prs);
         const celebrationEmojis = ["🎉", "🚀", "✨", "🎊", "🎈", "🌟", "💫", "🔥"];
         const randomEmoji = celebrationEmojis[Math.floor(Math.random() * celebrationEmojis.length)];
-        const headers = [
-            "Time to Celebrate!",
-            "Victory Lap Time!",
-            "Code Champions Alert!",
-            "Merge Party!",
-            "Ship It Sandwich!",
-            "PR Power Hour!",
-        ];
-        const headerText = headers[Math.floor(Math.random() * headers.length)];
+        const headerText = this.getDayHeader();
         // Build the text message with nice formatting
         let message = `${randomEmoji} ${headerText} ${randomEmoji}\n\n`;
         message += `*${prs.length}* awesome PR${prs.length > 1 ? "s" : ""} merged in the last ${this.mergeWindowHours} hour${this.mergeWindowHours !== 1 ? "s" : ""} by *${uniqueAuthors.size}* contributor${uniqueAuthors.size > 1 ? "s" : ""}!\n\n`;
@@ -71,9 +78,9 @@ class SlackNotifier {
         Object.entries(repoGroups).forEach(([repo, repoPRs]) => {
             message += `📦 ${repo}\n\n`;
             repoPRs.forEach((pr) => {
-                message += `  • 🔀 #${pr.number}: ${pr.title}\n`;
-                message += `        -👤 @${pr.author}\n`;
-                message += `        -${pr.url}\n\n`;
+                message += `  • ${pr.title}\n`;
+                message += `        - @${pr.author}\n`;
+                message += `        - ${pr.url}\n\n`;
             });
         });
         message += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n";
@@ -89,16 +96,7 @@ class SlackNotifier {
         const repoGroups = this.groupPRsByRepo(prs);
         const celebrationEmojis = ["🎉", "🚀", "✨", "🎊", "🎈", "🌟", "💫", "🔥"];
         const randomEmoji = celebrationEmojis[Math.floor(Math.random() * celebrationEmojis.length)];
-        // Fun header messages
-        const headers = [
-            "Time to Celebrate!",
-            "Victory Lap Time!",
-            "Code Champions Alert!",
-            "Merge Party!",
-            "Ship It Sandwich!",
-            "PR Power Hour!",
-        ];
-        const headerText = headers[Math.floor(Math.random() * headers.length)];
+        const headerText = this.getDayHeader();
         // Build the message blocks
         const blocks = [
             {
